@@ -16,7 +16,7 @@ export default function Home() {
         </div>
         <div className="Repuestos Pancho" aria-label="La Mejor Tienda Moto ">
           <div className="moto">
-            <div className="motoEmoji">🏍️</div>
+            <div className="FBAM">🏍️</div>
             <h3>MotoStore 3D</h3>
             <p>Inventario dinámico · compra online · panel admin</p>
           </div>
