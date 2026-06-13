@@ -1,80 +1,154 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import api from '../api/axios.js';
+import React, { useEffect, useState } from "react";
+import api from "../api/axios";
+import { Link } from "react-router-dom";
 
-export default function Productos({ onCartChange }) {
+function Productos() {
+  const [categorias, setCategorias] = useState([]);
   const [productos, setProductos] = useState([]);
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(null);
+  const [nombreCategoria, setNombreCategoria] = useState("");
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState('');
-  const [busqueda, setBusqueda] = useState('');
-  const [categoria, setCategoria] = useState('Todas');
-  const [toast, setToast] = useState('');
-  const navigate = useNavigate();
-  const usuario = JSON.parse(localStorage.getItem('usuario') || 'null');
 
   useEffect(() => {
-    api.get('/productos')
-      .then(r => setProductos(r.data))
-      .catch(() => setError('No se pudieron cargar los productos'))
-      .finally(() => setCargando(false));
+    cargarDatos();
   }, []);
 
-  const agregar = async (producto) => {
-    if (!usuario) return navigate('/login');
-    await api.post('/carrito', { id_producto: producto.id_producto, cantidad: 1 });
-    setToast(`${producto.nombre} agregado al carrito`);
-    onCartChange?.();
-    window.dispatchEvent(new Event('cart-updated'));
-    setTimeout(() => setToast(''), 1800);
+  const cargarDatos = async () => {
+    try {
+      setCargando(true);
+
+      const respuestaCategorias = await api.get("/categorias");
+      const respuestaProductos = await api.get("/productos");
+
+      setCategorias(respuestaCategorias.data);
+      setProductos(respuestaProductos.data);
+    } catch (error) {
+      console.error("Error al cargar catálogo:", error);
+    } finally {
+      setCargando(false);
+    }
   };
 
-  const categorias = ['Todas', ...new Set(productos.map(p => p.categoria))];
-  const filtrados = productos.filter(p => {
-    const texto = `${p.nombre} ${p.marca} ${p.modelo_compatible} ${p.categoria}`.toLowerCase();
-    const coincideTexto = texto.includes(busqueda.toLowerCase());
-    const coincideCategoria = categoria === 'Todas' || p.categoria === categoria;
-    return coincideTexto && coincideCategoria;
-  });
+  const seleccionarCategoria = (categoria) => {
+    setCategoriaSeleccionada(categoria.id_categoria);
+    setNombreCategoria(categoria.nombre);
+  };
 
-  if (cargando) return <p className="msg">Cargando productos...</p>;
-  if (error) return <p className="error centerText">{error}</p>;
+  const volverCategorias = () => {
+    setCategoriaSeleccionada(null);
+    setNombreCategoria("");
+  };
+
+  const productosFiltrados = productos.filter(
+    (producto) => producto.id_categoria === categoriaSeleccionada
+  );
+
+  if (cargando) {
+    return (
+      <main className="catalogo-page">
+        <h2>Cargando catálogo...</h2>
+      </main>
+    );
+  }
 
   return (
-    <main className="container catalogPage">
-      {toast && <div className="toast">{toast}</div>}
-      <section className="catalogHeader">
-        <div>
-          <span className="pill dark">Catálogo inteligente</span>
-          <h2>Productos para motos y accesorios</h2>
-          <p>Filtra por categoría, revisa compatibilidad y agrega al carrito.</p>
-        </div>
-        <div className="catalogControls">
-          <input placeholder="Buscar producto, marca o modelo..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
-          <select value={categoria} onChange={e => setCategoria(e.target.value)}>
-            {categorias.map(c => <option key={c}>{c}</option>)}
-          </select>
-        </div>
+    <main className="catalogo-page">
+      <section className="catalogo-header">
+        <span className="badge">MotoStore Ecuador</span>
+
+        {!categoriaSeleccionada ? (
+          <>
+            <h1>Elige una categoría</h1>
+            <p>
+              Selecciona qué necesitas para tu moto: cascos, aceites, repuestos,
+              accesorios o llantas.
+            </p>
+          </>
+        ) : (
+          <>
+            <h1>{nombreCategoria}</h1>
+            <p>Estos son los productos disponibles en esta categoría.</p>
+
+            <button className="btn-volver-categorias" onClick={volverCategorias}>
+              ← Volver a categorías
+            </button>
+          </>
+        )}
       </section>
 
-      <section className="grid productGrid">
-        {filtrados.map(p => (
-          <article className="card productCard" key={p.id_producto}>
-            <div className="imgWrap">
-              <img src={p.imagen_url} alt={p.nombre} onError={e => { e.currentTarget.src = 'https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=900'; }} />
-              <span className="categoryTag">{p.categoria}</span>
-            </div>
-            <div className="cardBody">
-              <h3>{p.nombre}</h3>
-              <p>{p.marca} · Compatible: {p.modelo_compatible}</p>
-              <div className="priceRow"><b>${Number(p.precio).toFixed(2)}</b><span>Stock {p.stock}</span></div>
-              <div className="cardActions">
-                <Link className="btn small secondary" to={`/productos/${p.id_producto}`}>Detalle</Link>
-                <button className="btn small" onClick={() => agregar(p)}>Agregar</button>
+      {!categoriaSeleccionada && (
+        <section className="categorias-grid">
+          {categorias.map((categoria) => (
+            <button
+              key={categoria.id_categoria}
+              className="categoria-card"
+              onClick={() => seleccionarCategoria(categoria)}
+            >
+              <div className="categoria-icono">
+                {categoria.nombre === "Cascos" && "🪖"}
+                {categoria.nombre === "Aceites" && "🛢️"}
+                {categoria.nombre === "Repuestos" && "⚙️"}
+                {categoria.nombre === "Accesorios" && "🧤"}
+                {categoria.nombre === "Llantas" && "🛞"}
               </div>
+
+              <h3>{categoria.nombre}</h3>
+              <p>{categoria.descripcion}</p>
+
+              <span>Ver productos →</span>
+            </button>
+          ))}
+        </section>
+      )}
+
+      {categoriaSeleccionada && (
+        <section className="productos-grid">
+          {productosFiltrados.length === 0 ? (
+            <div className="sin-productos">
+              <h3>No hay productos disponibles</h3>
+              <p>
+                Esta categoría no tiene productos activos por el momento.
+              </p>
             </div>
-          </article>
-        ))}
-      </section>
+          ) : (
+            productosFiltrados.map((producto) => (
+              <article className="producto-card" key={producto.id_producto}>
+                <img src={producto.imagen_url} alt={producto.nombre} />
+
+                <div className="producto-info">
+                  <span className="producto-categoria">
+                    {producto.categoria}
+                  </span>
+
+                  <h3>{producto.nombre}</h3>
+
+                  <p>
+                    <strong>Marca:</strong> {producto.marca}
+                  </p>
+
+                  <p>
+                    <strong>Compatible:</strong>{" "}
+                    {producto.modelo_compatible}
+                  </p>
+
+                  <strong className="precio">
+                    ${Number(producto.precio).toFixed(2)}
+                  </strong>
+
+                  <Link
+                    className="btn-detalle"
+                    to={`/productos/${producto.id_producto}`}
+                  >
+                    Ver detalle
+                  </Link>
+                </div>
+              </article>
+            ))
+          )}
+        </section>
+      )}
     </main>
   );
 }
+
+export default Productos;
