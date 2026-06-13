@@ -1,0 +1,10 @@
+const express = require('express');
+const router = express.Router();
+const verificarToken = require('../middlewares/verificarToken');
+const verificarAdmin = require('../middlewares/verificarAdmin');
+const { crearPedido, listarMisPedidos, listarPedidosAdmin, cambiarEstadoPedido } = require('../Controllers/pedido_controller');
+router.post('/', verificarToken, crearPedido);
+router.get('/mis-pedidos', verificarToken, listarMisPedidos);
+router.get('/admin', verificarToken, verificarAdmin, listarPedidosAdmin);
+router.put('/estado/:id', verificarToken, verificarAdmin, cambiarEstadoPedido);
+module.exports = router;

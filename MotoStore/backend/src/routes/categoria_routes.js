@@ -1,0 +1,10 @@
+const express = require('express');
+const router = express.Router();
+const verificarToken = require('../middlewares/verificarToken');
+const verificarAdmin = require('../middlewares/verificarAdmin');
+const { listarCategorias, crearCategoria, actualizarCategoria, desactivarCategoria } = require('../Controllers/categoria_controller');
+router.get('/', listarCategorias);
+router.post('/', verificarToken, verificarAdmin, crearCategoria);
+router.put('/:id', verificarToken, verificarAdmin, actualizarCategoria);
+router.put('/desactivar/:id', verificarToken, verificarAdmin, desactivarCategoria);
+module.exports = router;
