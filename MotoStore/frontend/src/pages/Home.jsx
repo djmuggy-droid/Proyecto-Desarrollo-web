@@ -14,8 +14,8 @@ export default function Home() {
             <Link className="btn secondary" to="/login">Ingresar</Link>
           </div>
         </div>
-        <div className="moto3d" aria-label="Moto 3D decorativa">
-          <div className="motoCard3d">
+        <div className="Repuestos Pancho" aria-label="La Mejor Tienda Moto ">
+          <div className="moto">
             <div className="motoEmoji">🏍️</div>
             <h3>MotoStore 3D</h3>
             <p>Inventario dinámico · compra online · panel admin</p>
@@ -46,8 +46,8 @@ export default function Home() {
       <section className="experience">
         <div>
           <span className="pill">Experiencia de compra</span>
-          <h2>Carrito visual, contador en tiempo real y pedidos conectados a MySQL</h2>
-          <p>El usuario agrega productos, revisa cantidades, calcula el total y genera su pedido. El administrador gestiona el inventario desde un panel protegido.</p>
+          <h2> TODO LO QUE NECESITAS EN UN SOLO LUGAR LO ENCUENTRAS AQUÍ </h2>
+          <p>ERES EL MEJOR PORQUE ESTÁS CON LOS MEJORES </p>
           <Link className="btn" to="/productos">Comprar ahora</Link>
         </div>
       </section>
